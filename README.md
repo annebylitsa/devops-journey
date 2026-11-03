@@ -2,6 +2,12 @@
 
 Diario de mi cambio de carrera de UX/UI a DevOps/Cloud
 
+## Objetivos
+- Pasar de UX/UI a un puesto junior de DevOps/Cloud en unos 6 meses.
+- Aprender Linux, redes, Git, Bash, Python, Docker, CI/CD, AWS, Terraform y Kubernetes practicando con proyectos reales, no solo viendo tutoriales.
+- Conseguir las certificaciones AWS Solutions Architect Associate y Terraform Associate.
+- Documentar todo el proceso en este repo como portfolio.
+
 ## Cuándo empecé
 3 de noviembre de 2026
 
