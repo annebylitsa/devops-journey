@@ -6,11 +6,11 @@
 - Permisos
 - Más comandos aun
 - La lógica de sudo
-- Los bits especiales como setgid (2 en el octal, s enel grupo, los archivos nuevos heredan el grupo del directorio) o sticky (1, t, solo el dueño del archivo o directorio, o root, puede borrar).
+- Los bits especiales como setgid (2 en el octal, en el grupo, los archivos nuevos heredan el grupo del directorio) o sticky (1, t, solo el dueño del archivo o directorio, o root, puede borrar).
 
 ## Práctica
 - Hoy he hecho tareas de práctica relacionadas con la creación de cuentas, manejo a través de ellas y cómo funcionan los permisos
-- He aprendido a manejas chmod y qué representan los números que lo acompañan
+- He aprendido a manejar chmod y qué representan los números que lo acompañan
 
 ## Errores y cómo los resolví
 - He intentado hacer `$ cut /etc/passwd` por curiosidad ya que con `$ cat` veo una lista ilegible. Ocurre que me salió error. No puedo ejecutar `cut` sin parámetros, no funciona tal cual cat.
