@@ -1,0 +1,6 @@
+[Unit]
+Description=Aviso de práctica
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/echo aviso del timer

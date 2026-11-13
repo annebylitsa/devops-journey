@@ -1,0 +1,11 @@
+[Unit]
+Description=Servicio de práctica: latido
+
+[Service]
+ExecStart=/home/ann/practica-systemd/latido.sh
+User=ann
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
