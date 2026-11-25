@@ -127,3 +127,132 @@ Cómo se lee una línea (**ejemplo inventado**, una línea de datos, no del apre
 > - Solo capturas **tu propia VM, con filtros**, y tráfico de prueba contra `example.com`. El **puerto 80 va sin cifrar**: se puede leer su contenido. **No uses** `-A` ni `-X` (muestran el contenido).
 > - Tus líneas llevan **la IP privada de tu VM**: **solo en el vault**. Para el repo, **sustitúyela por `VM`** o por `192.0.2.10`. Las IP públicas de `example.com` o `1.1.1.1` no son problema.
 > - Un archivo `.pcap` contiene IP **y MAC**: **nunca al repo**, y bórralo al terminar.
+
+
+# 3. HTTP y TLS
+
+## HTTP
+
+- HTTP (Hypertext Transfer Protocol), es el nombre de un protocolo el cual nos permite realizar una petición de datos y recursos. Es la base de cualquier intercambio de datos en la Web, y un protocolo de estructura cliente-servidor.
+
+- El «idioma» de la web: el cliente **pregunta** (petición) y el servidor **contesta** (respuesta), en texto, **encima de TCP** (puerto 80).
+
+
+### Anatomía de un mensake HTTP
+
+```
+POST /users HTTP/1.1 (start-line)
+Host: example.com (comienzo header)
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 49 (final header)
+
+name=FirstName+LastName&email=bsmth%40example.com (body)
+```
+
+1. *Start-line*, describe la versión HTTP junto con el método o resultado de la petición: 
+    `<method> <request-target> <protocol>`
+    - **`<method>`**: HTTP verb, set de palabras definidas que describen el significado de la petición y el resultado deseado. Por ejemplo, `GET` significa que el cliente quiere recibir recursos, `POST` significa que envía datos al servidor.
+    - **`<request-target>`**: suele ser una URL relativa o absoluta, caracterizada por el contexto de la petición. 
+    - **`<protocol>`**: La versión HTTP que define la estructura del significado del mensaje, actuando como indicador de la versión que se quiere usar para la respuesta.
+
+La *Start-line* en respuesta del servidor es conocida como *Status-line* y tiene 3 partes:
+    `<protocol> <status-code> <reason-phrase>`
+    - `<protocol>` versión HTTP del mensaje
+    - `<status-code>` numérico que indica si la petición ha sido exitosa o ha fallado (si empieza po 2 es éxito según apuntes)
+    - `<reason-phrase>` texto opcional que describe el estado para que el humano pueda entender el resultado de la petición.
+
+
+2. *Headers* (opcionales), metadata que describe el mensaje
+    Los *headers* son metadata enviada con la petición despues de la *start-line* y antes del *body*. Es lo que va debajo de `POST /users HTTP/1.1`
+
+3. Línea vacía que indica que la metadata del mensaje está completa
+
+
+4. *Body* (opcional) que contiene los datos asociados con el mensaje
+    Parte de la petición que lleva información al servidor. Sólo `PATCH`, `POST` y `PUT` tienen body. Es lo que va debajo del header
+
+
+### Métodos request
+
+| Método        | Función                                                                                                                        | Safe/Idempotent/Cacheable |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| **`GET`**     | Solicita representación de un recurso                                                                                          | Yes/Yes/Yes               |
+| **`QUERY`**   | Solicita que el *target resource* procese el contenido de la petición de forma segura y devuelve el resultado en la respuesta. | Yes/Yes/Yes               |
+| **`HEAD`**    | Solicita lo mismo que `GET` pero sin *repsonse body*                                                                           | Yes/Yes/Yes               |
+| **`OPTIONS`** | Describe las opciones de comunicación al *target resource*                                                                     | Yes/Yes/No                |
+| **`TRACE`**   | Hace un mensaje tipo test loop-back de camino al *target resourse*                                                             | Yes/Yes/No                |
+| **`PUT`**     | Reemplaza todas las representaciones del *target resource* con una petición de contenido                                       | No/Yes/No                 |
+| **`DELETE`**  | Elimina recurso especificado                                                                                                   | No/Yes/No                 |
+| **`POST`**    | Envía una entidad al recurso especificado, puede causar cambio de estar o efectos secundarios en el servidor                   | No/No/Conditional*        |
+| **`PATCH`**   | Aplica modificaciones parciales a un recurso                                                                                   | No/No/Conditional*        |
+| **`CONNECT`** | Establece un túnel al servidor identificado por el *target resource*                                                           | No/No/No                  |
+
+`POST` y `PATCH` son cacheables cuando la respuesta incluye ***freshness information*** y un header matching `Content-Location` 
+
+### HTTP códigos de estado
+
+Destaco las que más he visto.
+
+1. **Informational responses** del  **`100`** al **`199`**.
+
+2. **Successful responses** del **`200`** al **`299`**
+
+     - **`200 OK`**: éxito. El resultado y significado dependen del método.
+
+3. **Redirection messages** del **`300`** al **`399`**
+
+    - **`301 Moved Permanently`**: el servidor se ha mudado para siempre, está en `Location`
+
+4. **Client error responses** del `400` al `499`
+
+    - **`403 Forbidden`**: el cliente no tiene permiso para acceder al contenido.
+
+    - **`404 Not Found`**: ruta vacía, probablemente errata en la URL, a veces un servidor devuelve esto para ocultar algo que sí existe.
+
+5. **Server error responses** del `500` al `599`
+
+    - **`500 Internal Server Error`**: fallo del servidor que no sabe cómo manejar, nada que el cliente pueda arreglar.
+
+    - **`502 Bad Gateway`**: responde un intermediario, el servidor de detrás contestó mal o no contestó.
+
+
+### Cookies
+
+- Una Cookie es una pieza pequeña de datos que un servidor envía al navegador del usuario. El navegador puede guardar cookies, crear nuevas, modificar existentes y enviarlas de vuelta con las siguientes peticiones. Las cookies permiten a las aplicaciones web guardar cantidades limitadas de datos y recordar estados de información.
+
+1. El usuario introduce sus datos de login en un servidor.
+
+2. Si los credenciales son correctos, el servidor actualiza la interfaz para indicar al usuario que está loggeado y responde con una cookie que contiene la ID de la sesión que guarda el estado del sign-in en el navegador.
+
+3. Cuando el usuario cambie de página dentro de la misma web, el navegado envia la cookie con esa ID junto con la petición para indicar que cree que el usuario sigue signed in.
+
+4. El servidor revisa la ID y, si cree que es válida, devuelve al usuario una versión personalizada de esa página. Si no, la ID se elimina y el usuario recibe una versión genérica de la página.
+
+
+- Las cookies se usan sobre todo para:
+
+    - **Gestión de sesiones**: sign-in, carritos de compra...
+    - **Personalización**: preferencias de usuario como idioma, tema de la interfaz...
+    - **Tracking**: grabado y análisis del comportamiento del usuario.
+
+
+## TLS 
+
+- Protocolo que permite al cliente comunicarse de forma segura con el servidor a través de una red fiable. Se suele usar para asegurar conexiones HTTP en la web, el protocolo resultante se llama HTTPS.
+
+- TLS hace una red segura de tres formas:
+
+    - ***Encryption***: los datos intercambiados son encriptados en el tránsito
+    - ***Integrity***: un atacante no puede modificar los datos sin ser detectado mientras están en tránsito
+    - ***Authetication***: cliente y servidor pueden asegurar que son la entidad que dicen ser
+
+### TLS handshake
+
+- Este handshake, al igual que el de TCP, gasta un RTT:
+
+    - Cliente y servidor **acuerdan qué versión de TLS usarán**. La actual y más usada es TLS 1.3 pero TLS 1.2 también se sigue usando, las demás no deberían ser usadas.
+    - Cliente y servidor **acuerdan el *cipher suite* que usarán**, esto define los algoritmos que usarán para key agreement, autentificación, enriptado y autentificado de mensajes.
+    - Opcionalmente, cliente y servidor se autentifican el uno al otro.
+    - Cliente y servidor acuerdan una ***secret key*** que usarán para encriptar y desencriptar mensajes.
+
+- Hecho esto, usan la ***secret key*** para cualquier mensaje, incluyendo headers y bodies HTTP.
