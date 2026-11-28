@@ -4,3 +4,4 @@ server {
         root /var/www/otraweb;
         index index.html;
 }
+
